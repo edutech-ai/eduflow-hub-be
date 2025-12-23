@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.staging
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Uploads and temp files
+public/uploads/*
+!public/uploads/.gitkeep
+public/temp/*
+!public/temp/.gitkeep
+
+# Database
+*.sqlite
+*.db
+database/
+
+# Database backups
+backups/
+
+# Redis dump
+dump.rdb
+
+# Docker
+docker-compose.override.yml
+
+# Misc
+.cache/
+.parcel-cache/
+.eslintcache
+.npm/
+
+# docs
+docs/
+
+# scripts
+scripts/

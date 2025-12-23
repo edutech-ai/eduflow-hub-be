@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "baseUrl": "./dist",
+    "paths": {
+      "@/*": ["./*"],
+      "@configs/*": ["./configs/*"],
+      "@controllers/*": ["./controllers/*"],
+      "@services/*": ["./services/*"],
+      "@models/*": ["./models/*"],
+      "@routes/*": ["./routes/*"],
+      "@middlewares/*": ["./middlewares/*"],
+      "@utils/*": ["./utils/*"],
+      "@types/*": ["./types/*"],
+      "@validators/*": ["./validators/*"],
+      "@database/*": ["./database/*"],
+      "@jobs/*": ["./jobs/*"],
+      "@sockets/*": ["./sockets/*"]
+    }
+  }
+}

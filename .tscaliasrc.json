@@ -1,0 +1,9 @@
+{
+  "resolveFullPaths": true,
+  "replacers": {
+    "js": {
+      "enabled": true,
+      "extension": ".js"
+    }
+  }
+}
