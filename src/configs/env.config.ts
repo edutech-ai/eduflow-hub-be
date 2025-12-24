@@ -46,6 +46,12 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().email().default('noreply@eduflow-hub.com'),
   EMAIL_FROM_NAME: z.string().default('EduFlow Hub'),
 
+  // Mailtrap (Development)
+  MAILTRAP_HOST: z.string().default('sandbox.smtp.mailtrap.io'),
+  MAILTRAP_PORT: z.string().default('2525'),
+  MAILTRAP_USER: z.string().optional(),
+  MAILTRAP_PASS: z.string().optional(),
+
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().default('100'),
@@ -144,6 +150,10 @@ export const envConfig = {
     brevoApiKey: env.BREVO_API_KEY,
     from: env.EMAIL_FROM,
     fromName: env.EMAIL_FROM_NAME,
+    mailtrapHost: env.MAILTRAP_HOST,
+    mailtrapPort: parseInt(env.MAILTRAP_PORT, 10),
+    mailtrapUser: env.MAILTRAP_USER,
+    mailtrapPass: env.MAILTRAP_PASS,
   },
 
   // Rate Limiting

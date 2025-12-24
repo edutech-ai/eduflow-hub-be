@@ -12,6 +12,9 @@ export interface IUser extends Document {
   status: UserStatus;
   avatar?: string;
   refreshToken?: string;
+  isEmailVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -60,6 +63,18 @@ const userSchema = new Schema<IUser>(
     },
     refreshToken: {
       type: String,
+      select: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      select: false,
+    },
+    verificationTokenExpiry: {
+      type: Date,
       select: false,
     },
   },
