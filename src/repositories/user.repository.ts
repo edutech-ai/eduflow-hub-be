@@ -102,6 +102,9 @@ export class UserRepository extends BaseRepository<IUser> {
       },
       { new: true }
     );
+    if (!user) {
+      throw new Error('User not found');
+    }
     return user as IUser;
   }
 
