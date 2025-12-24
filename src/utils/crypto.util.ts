@@ -9,7 +9,7 @@ export const generateVerificationCode = (): {
   hashedCode: string;
   codeExpiry: Date;
 } => {
-  const code = Math.floor(10000 + Math.random() * 90000).toString();
+  const code = crypto.randomInt(10000, 100000).toString();
 
   // Hash the code using SHA256
   const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
