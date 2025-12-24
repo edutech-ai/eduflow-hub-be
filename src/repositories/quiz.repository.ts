@@ -1,6 +1,6 @@
 import { BaseRepository } from './base.repository.js';
 import { Quiz, IQuiz } from '../models/quiz.model.js';
-import { QuizStatus } from '../enums/quiz.enum.js';
+import { QuizStatus, QuizType } from '../enums/classroom.enum.js';
 
 export class QuizRepository extends BaseRepository<IQuiz> {
   constructor() {
@@ -77,11 +77,11 @@ export class QuizRepository extends BaseRepository<IQuiz> {
     let isCorrect = false;
     let points = 0;
 
-    if (question.type === 'multiple_choice') {
+    if (question.type === QuizType.MULTIPLE_CHOICE) {
       const correctOption = question.options?.find((opt) => opt.isCorrect);
       isCorrect = answer === correctOption?.text;
       points = isCorrect ? question.points : 0;
-    } else if (question.type === 'true_false') {
+    } else if (question.type === QuizType.TRUE_FALSE) {
       const correctOption = question.options?.find((opt) => opt.isCorrect);
       isCorrect = answer === correctOption?.text;
       points = isCorrect ? question.points : 0;

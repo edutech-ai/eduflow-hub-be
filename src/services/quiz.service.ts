@@ -2,7 +2,7 @@ import { quizRepository } from '../repositories/quiz.repository.js';
 import { ApiError } from '../utils/error.util.js';
 import { HTTP_STATUS } from '../constants/http.constant.js';
 import { IQuiz } from '../models/quiz.model.js';
-import { QuizStatus } from '../enums/quiz.enum.js';
+import { QuizStatus } from '../enums/classroom.enum.js';
 
 export class QuizService {
   /**
@@ -66,7 +66,7 @@ export class QuizService {
       settings: data.settings,
       status: QuizStatus.DRAFT,
       answers: [],
-    } as Partial<IQuiz>);
+    } as any);
   }
 
   /**

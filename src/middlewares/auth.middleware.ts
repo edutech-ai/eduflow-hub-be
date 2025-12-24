@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../constants/http.constant.js';
 
 // Extend Express Request type to include user
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: {

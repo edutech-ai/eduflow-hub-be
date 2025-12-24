@@ -55,7 +55,7 @@ export class LessonService {
       ...data,
       author: data.authorId,
       status: LessonStatus.COMPLETED,
-    } as Partial<ILesson>);
+    } as any);
   }
 
   /**
