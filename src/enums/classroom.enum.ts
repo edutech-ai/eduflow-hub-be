@@ -1,17 +1,17 @@
 export enum ClassroomStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  ARCHIVED = 'archived',
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export enum QuizStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  ENDED = 'ended',
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  ENDED = 'ENDED',
 }
 
 export enum QuizType {
-  MULTIPLE_CHOICE = 'multiple_choice',
-  TRUE_FALSE = 'true_false',
-  SHORT_ANSWER = 'short_answer',
+  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
+  TRUE_FALSE = 'TRUE_FALSE',
+  SHORT_ANSWER = 'SHORT_ANSWER',
 }

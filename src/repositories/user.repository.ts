@@ -1,6 +1,6 @@
 import { BaseRepository } from './base.repository.js';
 import { User, IUser } from '../models/user.model.js';
-import { UserRole } from '../enums/user.enum.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
 
 export class UserRepository extends BaseRepository<IUser> {
   constructor() {
@@ -15,6 +15,31 @@ export class UserRepository extends BaseRepository<IUser> {
   }
 
   /**
+   * Find user by email with password (for authentication)
+   * Returns raw Mongoose document with instance methods
+   */
+  async findByEmailWithPassword(email: string): Promise<IUser | null> {
+    const user = await this.model.findOne({ email }).select('+password +refreshToken').exec();
+    return user;
+  }
+
+  /**
+   * Find user by ID with refresh token (for token refresh)
+   */
+  async findByIdWithRefreshToken(id: string): Promise<IUser | null> {
+    const user = await this.model.findById(id).select('+refreshToken').exec();
+    return user;
+  }
+
+  /**
+   * Find user by ID with password (for password change)
+   */
+  async findByIdWithPassword(id: string): Promise<IUser | null> {
+    const user = await this.model.findById(id).select('+password').exec();
+    return user;
+  }
+
+  /**
    * Find users by role
    */
   async findByRole(role: UserRole): Promise<IUser[]> {
@@ -25,7 +50,7 @@ export class UserRepository extends BaseRepository<IUser> {
    * Find active users
    */
   async findActiveUsers(): Promise<IUser[]> {
-    return await this.findAll({ filter: { status: 'active' } });
+    return await this.findAll({ filter: { status: UserStatus.ACTIVE } });
   }
 
   /**
@@ -41,13 +66,15 @@ export class UserRepository extends BaseRepository<IUser> {
   protected override formatDocument(document: any): IUser {
     if (!document) return document;
 
-    // Remove sensitive fields
-    const formatted = { ...document };
-    delete (formatted as any).password;
-    delete (formatted as any).refreshToken;
-    delete (formatted as any).__v;
+    // Convert Mongoose document to plain object (preserves _id)
+    const obj = document.toObject ? document.toObject() : document;
 
-    return formatted as IUser;
+    // Remove sensitive fields
+    delete obj.password;
+    delete obj.refreshToken;
+    delete obj.__v;
+
+    return obj as IUser;
   }
 }
 

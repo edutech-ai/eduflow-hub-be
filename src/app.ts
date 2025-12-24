@@ -50,10 +50,13 @@ if (envConfig.isDevelopment) {
 }
 
 // API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customSiteTitle: 'EduFlow Hub API Documentation',
-  customCss: '.swagger-ui .topbar { display: none }',
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: 'EduFlow Hub API Documentation',
+  })
+);
 
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {

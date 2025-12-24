@@ -2,15 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { ApiError } from '@/utils/error.util.js';
 import { HTTP_STATUS } from '@/constants/http.constant.js';
-import { envConfig } from '@/configs/env.config.js';
 import logger from '@/configs/logger.config.js';
 
 interface ErrorResponse {
   success: false;
   message: string;
-  errorCode?: string;
-  errors?: any;
-  stack?: string;
+  errors?: string[];
 }
 
 export const errorHandler = (
@@ -21,49 +18,41 @@ export const errorHandler = (
 ) => {
   let statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR;
   let message = 'Internal Server Error';
-  let errorCode: string | undefined;
-  let errors: any;
+  let errors: string[] | undefined;
 
   // Handle ApiError
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
     message = err.message;
-    errorCode = err.errorCode;
   }
   // Handle Zod validation errors
   else if (err instanceof ZodError) {
     statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY;
     message = 'Validation error';
-    errorCode = 'VALIDATION_ERROR';
-    errors = err.errors.map((error) => ({
-      field: error.path.join('.'),
-      message: error.message,
-    }));
+    errors = err.errors.map((error) => error.message);
   }
   // Handle Mongoose validation errors
   else if (err.name === 'ValidationError') {
     statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY;
     message = 'Validation error';
-    errorCode = 'VALIDATION_ERROR';
+    const mongooseErr = err as any;
+    errors = Object.values(mongooseErr.errors || {}).map((e: any) => e.message);
   }
   // Handle Mongoose duplicate key error
   else if (err.name === 'MongoServerError' && (err as any).code === 11000) {
     statusCode = HTTP_STATUS.CONFLICT;
     message = 'Resource already exists';
-    errorCode = 'DUPLICATE_KEY';
   }
   // Handle JWT errors
   else if (err.name === 'JsonWebTokenError') {
     statusCode = HTTP_STATUS.UNAUTHORIZED;
     message = 'Invalid token';
-    errorCode = 'INVALID_TOKEN';
   } else if (err.name === 'TokenExpiredError') {
     statusCode = HTTP_STATUS.UNAUTHORIZED;
     message = 'Token expired';
-    errorCode = 'TOKEN_EXPIRED';
   }
 
-  // Log error
+  // Log error with full details (server-side only)
   logger.error(`${statusCode} - ${message}`, {
     error: err.message,
     stack: err.stack,
@@ -72,17 +61,15 @@ export const errorHandler = (
     ip: req.ip,
   });
 
-  // Prepare response
+  // Prepare minimal response (security best practice)
   const response: ErrorResponse = {
     success: false,
     message,
-    errorCode,
-    errors,
   };
 
-  // Include stack trace in development
-  if (envConfig.isDevelopment) {
-    response.stack = err.stack;
+  // Only include errors array if validation errors exist
+  if (errors && errors.length > 0) {
+    response.errors = errors;
   }
 
   res.status(statusCode).json(response);
@@ -94,7 +81,6 @@ export const notFoundHandler = (req: Request, res: Response, _next: NextFunction
   res.status(HTTP_STATUS.NOT_FOUND).json({
     success: false,
     message,
-    errorCode: 'NOT_FOUND',
   });
 };
 

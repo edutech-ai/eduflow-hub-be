@@ -36,6 +36,7 @@ router.get('/health', (_req, res) => {
 
 // Import route modules
 import authRoutes from './auth.routes.js';
+import profileRoutes from './profile.routes.js';
 import userRoutes from './user.routes.js';
 // import lessonRoutes from './lesson.routes.js';
 // import classroomRoutes from './classroom.routes.js';
@@ -43,6 +44,7 @@ import userRoutes from './user.routes.js';
 
 // Register routes
 router.use('/auth', authRoutes);
+router.use('/profile', profileRoutes);
 router.use('/users', userRoutes);
 // router.use('/lessons', lessonRoutes); // TODO
 // router.use('/classrooms', classroomRoutes); // TODO
