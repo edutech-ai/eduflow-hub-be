@@ -4,6 +4,9 @@ import { HTTP_STATUS } from '../constants/http.constant.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.util.js';
 import { IUser } from '../models/user.model.js';
 import { UserRole, UserStatus } from '../enums/user.enum.js';
+import { generateVerificationCode, hashToken } from '../utils/crypto.util.js';
+import { sendVerificationEmail } from '../utils/email.util.js';
+import { logger } from '../configs/logger.config.js';
 
 export class AuthService {
   /**
@@ -26,7 +29,27 @@ export class AuthService {
       ...data,
       role: data.role || UserRole.STUDENT,
       status: UserStatus.PENDING,
+      isEmailVerified: false,
     } as Partial<IUser>);
+
+    // Generate 5-digit verification code
+    const { code, hashedCode, codeExpiry } = generateVerificationCode();
+
+    // Save hashed code to user
+    await userRepository.updateVerificationToken(
+      user._id.toString(),
+      hashedCode,
+      codeExpiry
+    );
+
+    // Send verification email
+    sendVerificationEmail(user.email, user.name, code).catch((error) => {
+      logger.error('Failed to send verification email during registration', {
+        userId: user._id.toString(),
+        email: user.email,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    });
 
     // Generate tokens
     const accessToken = generateAccessToken({
@@ -62,9 +85,12 @@ export class AuthService {
       throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Invalid email or password');
     }
 
-    const emailExists = await userRepository.findByEmail(email);
-    if (!emailExists) {
-      throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Wrong email address');
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      throw new ApiError(
+        HTTP_STATUS.FORBIDDEN,
+        'Please verify your email before logging in. Check your inbox for the verification link.'
+      );
     }
 
     // Check if account is active
@@ -197,6 +223,65 @@ export class AuthService {
     // Update password (will be hashed by pre-save hook)
     user.password = newPassword;
     await user.save();
+  }
+
+  /**
+   * Verify email with token
+   */
+  async verifyEmail(token: string): Promise<IUser> {
+    // Hash the token to compare with stored hash
+    const hashedToken = hashToken(token);
+
+    // Find user with valid verification token
+    const user = await userRepository.findByVerificationToken(hashedToken);
+    if (!user) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        'Invalid or expired verification token'
+      );
+    }
+
+    // Mark email as verified
+    const verifiedUser = await userRepository.verifyEmail(user._id.toString());
+
+    logger.info('Email verified successfully', {
+      userId: user._id.toString(),
+      email: user.email,
+    });
+
+    return verifiedUser;
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(email: string): Promise<void> {
+    const user = await userRepository.findByEmail(email);
+    if (!user) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'User not found');
+    }
+
+    if (user.isEmailVerified) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Email is already verified');
+    }
+
+    // Generate new 5-digit verification code
+    const { code, hashedCode, codeExpiry } = generateVerificationCode();
+
+    // Save hashed code to user
+    await userRepository.updateVerificationToken(
+      user._id.toString(),
+      hashedCode,
+      codeExpiry
+    );
+
+    // Send verification email
+    await sendVerificationEmail(user.email, user.name, code);
+
+    logger.info('Verification email resent', {
+      userId: user._id.toString(),
+      email: user.email,
+    });
   }
 }
 

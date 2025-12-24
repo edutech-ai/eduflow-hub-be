@@ -61,6 +61,51 @@ export class UserRepository extends BaseRepository<IUser> {
   }
 
   /**
+   * Update verification token
+   */
+  async updateVerificationToken(
+    userId: string,
+    verificationToken: string,
+    verificationTokenExpiry: Date
+  ): Promise<IUser> {
+    return await this.updateById(userId, {
+      verificationToken,
+      verificationTokenExpiry,
+    } as Partial<IUser>);
+  }
+
+  /**
+   * Find user by verification token
+   */
+  async findByVerificationToken(hashedToken: string): Promise<IUser | null> {
+    const user = await this.model
+      .findOne({
+        verificationToken: hashedToken,
+        verificationTokenExpiry: { $gt: new Date() },
+      })
+      .select('+verificationToken +verificationTokenExpiry')
+      .exec();
+    return user;
+  }
+
+  /**
+   * Mark email as verified and clear verification token
+   */
+  async verifyEmail(userId: string): Promise<IUser> {
+    const user = await this.model.findByIdAndUpdate(
+      userId,
+      {
+        isEmailVerified: true,
+        verificationToken: undefined,
+        verificationTokenExpiry: undefined,
+        status: UserStatus.ACTIVE,
+      },
+      { new: true }
+    );
+    return user as IUser;
+  }
+
+  /**
    * Format user document - remove sensitive fields
    */
   protected override formatDocument(document: any): IUser {

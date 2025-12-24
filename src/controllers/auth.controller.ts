@@ -10,7 +10,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
   res.status(HTTP_STATUS.CREATED).json({
     success: true,
-    message: 'User registered successfully',
+    message: 'User registered successfully. Please check your email to verify your account.',
     data: {
       user,
       tokens,
@@ -106,5 +106,42 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
   res.status(HTTP_STATUS.OK).json({
     success: true,
     message: 'Password changed successfully',
+  });
+};
+
+/**
+ * Verify email with 5-digit code
+ */
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  const { code } = req.body;
+
+  if (!code) {
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
+      success: false,
+      message: 'Verification code is required',
+    });
+    return;
+  }
+
+  const user = await authService.verifyEmail(code);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Email verified successfully. Your account is now active.',
+    data: user,
+  });
+};
+
+/**
+ * Resend verification email
+ */
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+
+  await authService.resendVerificationEmail(email);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Verification email sent successfully. Please check your inbox.',
   });
 };

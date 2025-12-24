@@ -44,8 +44,8 @@ const router = Router();
  *                 example: Password@123
  *               role:
  *                 type: string
- *                 enum: [student, teacher, admin]
- *                 example: student
+ *                 enum: [STUDENT, TEACHER, ADMIN]
+ *                 example: STUDENT
  *               avatar:
  *                 type: string
  *                 example: https://example.com/avatar.jpg
@@ -220,5 +220,87 @@ router.post(
  *         description: Unauthorized - Invalid or missing token
  */
 router.post('/logout', authenticate, asyncHandler(authController.logout));
+
+/**
+ * @swagger
+ * /api/v1/auth/verify-email:
+ *   post:
+ *     summary: Verify email address
+ *     description: Verify user email using the 5-digit code sent to their email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - code
+ *             properties:
+ *               code:
+ *                 type: string
+ *                 example: "12345"
+ *                 description: 5-digit verification code from email
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Email verified successfully. Your account is now active.
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid or expired verification code
+ */
+router.post('/verify-email', asyncHandler(authController.verifyEmail));
+
+/**
+ * @swagger
+ * /api/v1/auth/resend-verification:
+ *   post:
+ *     summary: Resend verification email
+ *     description: Resend verification email to user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *     responses:
+ *       200:
+ *         description: Verification email sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Verification email sent successfully. Please check your inbox.
+ *       400:
+ *         description: Email already verified
+ *       404:
+ *         description: User not found
+ */
+router.post('/resend-verification', asyncHandler(authController.resendVerificationEmail));
 
 export default router;
