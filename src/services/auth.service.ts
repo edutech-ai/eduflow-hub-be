@@ -43,13 +43,19 @@ export class AuthService {
     );
 
     // Send verification email
-    sendVerificationEmail(user.email, user.name, code).catch((error) => {
+    try {
+      await sendVerificationEmail(user.email, user.name, code);
+    } catch (error) {
       logger.error('Failed to send verification email during registration', {
         userId: user._id.toString(),
         email: user.email,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-    });
+      throw new ApiError(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        'Failed to send verification email'
+      );
+    }
 
     // Generate tokens
     const accessToken = generateAccessToken({
