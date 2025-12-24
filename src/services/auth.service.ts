@@ -25,7 +25,7 @@ export class AuthService {
     const user = await userRepository.create({
       ...data,
       role: data.role || UserRole.STUDENT,
-      status: UserStatus.ACTIVE,
+      status: UserStatus.PENDING,
     } as Partial<IUser>);
 
     // Generate tokens
@@ -56,10 +56,15 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<{ user: IUser; tokens: { accessToken: string; refreshToken: string } }> {
-    // Find user with password field
-    const user = await userRepository.findOne({ email });
+    // Find user with password field (raw Mongoose document with instance methods)
+    const user = await userRepository.findByEmailWithPassword(email);
     if (!user) {
       throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Invalid email or password');
+    }
+
+    const emailExists = await userRepository.findByEmail(email);
+    if (!emailExists) {
+      throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Wrong email address');
     }
 
     // Check if account is active
@@ -70,7 +75,7 @@ export class AuthService {
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Invalid email or password');
+      throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Wrong password');
     }
 
     // Generate tokens
@@ -101,8 +106,8 @@ export class AuthService {
     // Verify refresh token
     const payload = verifyRefreshToken(refreshToken);
 
-    // Find user
-    const user = await userRepository.findById(payload.userId);
+    // Find user with refresh token
+    const user = await userRepository.findByIdWithRefreshToken(payload.userId);
     if (!user || user.refreshToken !== refreshToken) {
       throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Invalid refresh token');
     }
@@ -144,6 +149,54 @@ export class AuthService {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'User not found');
     }
     return user;
+  }
+
+  /**
+   * Update current user profile
+   */
+  async updateProfile(
+    userId: string,
+    data: { name?: string; email?: string; avatar?: string }
+  ): Promise<IUser> {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'User not found');
+    }
+
+    // Check if email is being changed and already exists
+    if (data.email && data.email !== user.email) {
+      const existingUser = await userRepository.findByEmail(data.email);
+      if (existingUser) {
+        throw new ApiError(HTTP_STATUS.CONFLICT, 'Email already in use');
+      }
+    }
+
+    return await userRepository.updateById(userId, data as Partial<IUser>);
+  }
+
+  /**
+   * Change password
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    // Find user with password
+    const user = await userRepository.findByIdWithPassword(userId);
+    if (!user) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'User not found');
+    }
+
+    // Verify current password
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Current password is incorrect');
+    }
+
+    // Update password (will be hashed by pre-save hook)
+    user.password = newPassword;
+    await user.save();
   }
 }
 

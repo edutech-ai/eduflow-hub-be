@@ -57,29 +57,6 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 };
 
 /**
- * Update user
- */
-export const updateUser = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-
-  if (!id) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json({
-      success: false,
-      message: 'User ID is required',
-    });
-    return;
-  }
-
-  const user = await userService.updateUser(id, req.body);
-
-  res.status(HTTP_STATUS.OK).json({
-    success: true,
-    message: 'User updated successfully',
-    data: user,
-  });
-};
-
-/**
  * Delete user
  */
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {

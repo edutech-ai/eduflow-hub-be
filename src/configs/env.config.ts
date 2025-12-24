@@ -6,7 +6,7 @@ config();
 const envSchema = z.object({
   // Application
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().default('5000'),
+  PORT: z.string().default('3000'),
   APP_NAME: z.string().default('EduFlow Hub'),
 
   // Client & Server URLs

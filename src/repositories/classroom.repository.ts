@@ -121,7 +121,7 @@ export class ClassroomRepository extends BaseRepository<IClassroom> {
    * Set active quiz
    */
   async setActiveQuiz(classroomId: string, quizId: string | null): Promise<IClassroom> {
-    return await this.updateById(classroomId, { activeQuiz: quizId } as Partial<IClassroom>);
+    return await this.updateById(classroomId, { activeQuiz: quizId } as any);
   }
 
   /**

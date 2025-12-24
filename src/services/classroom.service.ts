@@ -82,7 +82,7 @@ export class ClassroomService {
       status: ClassroomStatus.ACTIVE,
       isLive: false,
       students: [],
-    } as Partial<IClassroom>);
+    } as any);
   }
 
   /**

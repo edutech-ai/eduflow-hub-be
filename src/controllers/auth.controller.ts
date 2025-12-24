@@ -77,3 +77,34 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
     data: user,
   });
 };
+
+/**
+ * Update current user profile
+ */
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { name, email, avatar } = req.body;
+
+  const user = await authService.updateProfile(userId, { name, email, avatar });
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Profile updated successfully',
+    data: user,
+  });
+};
+
+/**
+ * Change password
+ */
+export const changePassword = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { currentPassword, newPassword } = req.body;
+
+  await authService.changePassword(userId, currentPassword, newPassword);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: 'Password changed successfully',
+  });
+};

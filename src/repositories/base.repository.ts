@@ -1,4 +1,4 @@
-import { Model, Document, PopulateOptions, FilterQuery, QueryOptions } from 'mongoose';
+import { Model, Document, PopulateOptions, FilterQuery } from 'mongoose';
 import { ApiError } from '../utils/error.util.js';
 import { HTTP_STATUS } from '../constants/http.constant.js';
 

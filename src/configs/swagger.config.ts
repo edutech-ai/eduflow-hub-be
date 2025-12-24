@@ -116,8 +116,12 @@ const options: swaggerJsdoc.Options = {
         description: 'Authentication endpoints',
       },
       {
+        name: 'Profile',
+        description: 'Current user profile and personal resources',
+      },
+      {
         name: 'Users',
-        description: 'User management endpoints',
+        description: 'User management endpoints (Admin only)',
       },
       {
         name: 'Lessons',
