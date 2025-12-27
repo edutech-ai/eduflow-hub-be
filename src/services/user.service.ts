@@ -64,9 +64,11 @@ export class UserService {
       throw new ApiError(HTTP_STATUS.CONFLICT, 'Email already in use');
     }
 
+    // Admin-created users are auto-verified and active
     return await userRepository.create({
       ...data,
       status: UserStatus.ACTIVE,
+      isEmailVerified: true,
     } as Partial<IUser>);
   }
 
@@ -91,7 +93,12 @@ export class UserService {
       }
     }
 
-    return await userRepository.updateById(id, data as Partial<IUser>);
+    const updateData: Partial<IUser> = { ...data };
+    if (data.status === UserStatus.ACTIVE && !user.isEmailVerified) {
+      updateData.isEmailVerified = true;
+    }
+
+    return await userRepository.updateById(id, updateData);
   }
 
   /**
@@ -117,7 +124,20 @@ export class UserService {
    * Update user status
    */
   async updateUserStatus(id: string, status: UserStatus): Promise<IUser> {
-    return await userRepository.updateById(id, { status } as Partial<IUser>);
+    const user = await userRepository.findById(id);
+    if (!user) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'User not found');
+    }
+
+    // Auto-verify email when admin sets status to ACTIVE
+    const updateData: Partial<IUser> = { status };
+    if (status === UserStatus.ACTIVE && !user.isEmailVerified) {
+      updateData.isEmailVerified = true;
+    }
+
+    const updatedUser = await userRepository.updateById(id, updateData);
+
+    return updatedUser;
   }
 
   /**

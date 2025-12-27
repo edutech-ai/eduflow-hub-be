@@ -15,6 +15,7 @@ export interface IUser extends Document {
   isEmailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpiry?: Date;
+  googleId?: string;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -76,6 +77,11 @@ const userSchema = new Schema<IUser>(
     verificationTokenExpiry: {
       type: Date,
       select: false,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
   },
   {

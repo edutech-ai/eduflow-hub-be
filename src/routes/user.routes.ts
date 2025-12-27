@@ -4,11 +4,7 @@ import { asyncHandler } from '../utils/async-handler.util.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { adminOnly } from '../middlewares/authorize.middleware.js';
-import {
-  createUserSchema,
-  getUserByIdSchema,
-  deleteUserSchema,
-} from '../validators/user.validator.js';
+import { createUserSchema, getUserByIdSchema, deleteUserSchema } from '../validators/user.validator.js';
 
 const router = Router();
 
@@ -115,19 +111,14 @@ router.get('/', authenticate, asyncHandler(userController.getAllUsers));
  *       404:
  *         description: User not found
  */
-router.get(
-  '/:id',
-  authenticate,
-  validate(getUserByIdSchema),
-  asyncHandler(userController.getUserById)
-);
+router.get('/:id', authenticate, validate(getUserByIdSchema), asyncHandler(userController.getUserById));
 
 /**
  * @swagger
  * /api/v1/users:
  *   post:
  *     summary: Create new user
- *     description: Create a new user (Admin only)
+ *     description: Create a new user (Admin only). User will be created with status ACTIVE and email auto-verified.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -187,20 +178,14 @@ router.get(
  *       409:
  *         description: Email already in use
  */
-router.post(
-  '/',
-  authenticate,
-  adminOnly,
-  validate(createUserSchema),
-  asyncHandler(userController.createUser)
-);
+router.post('/', authenticate, adminOnly, validate(createUserSchema), asyncHandler(userController.createUser));
 
 /**
  * @swagger
  * /api/v1/users/{id}/status:
  *   patch:
  *     summary: Update user status
- *     description: Update user status (Admin only)
+ *     description: Update user status (Admin only). Setting status to ACTIVE will automatically verify the user's email.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -249,12 +234,7 @@ router.post(
  *       404:
  *         description: User not found
  */
-router.patch(
-  '/:id/status',
-  authenticate,
-  adminOnly,
-  asyncHandler(userController.updateUserStatus)
-);
+router.patch('/:id/status', authenticate, adminOnly, asyncHandler(userController.updateUserStatus));
 
 /**
  * @swagger
@@ -293,12 +273,6 @@ router.patch(
  *       404:
  *         description: User not found
  */
-router.delete(
-  '/:id',
-  authenticate,
-  adminOnly,
-  validate(deleteUserSchema),
-  asyncHandler(userController.deleteUser)
-);
+router.delete('/:id', authenticate, adminOnly, validate(deleteUserSchema), asyncHandler(userController.deleteUser));
 
 export default router;

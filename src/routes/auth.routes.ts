@@ -3,11 +3,11 @@ import * as authController from '../controllers/auth.controller.js';
 import { asyncHandler } from '../utils/async-handler.util.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
-import {
-  registerSchema,
-  loginSchema,
-  refreshTokenSchema,
-} from '../validators/auth.validator.js';
+import { registerSchema, loginSchema, refreshTokenSchema } from '../validators/auth.validator.js';
+import passport from '@/configs/passport.config.js';
+import { generateTokens } from '@/utils/jwt.util.js';
+import { envConfig } from '@/configs/env.config.js';
+import { IUser } from '@/models/user.model.js';
 
 const router = Router();
 
@@ -187,11 +187,7 @@ router.post('/login', validate(loginSchema), asyncHandler(authController.login))
  *       401:
  *         description: Invalid or expired refresh token
  */
-router.post(
-  '/refresh-token',
-  validate(refreshTokenSchema),
-  asyncHandler(authController.refreshToken)
-);
+router.post('/refresh-token', validate(refreshTokenSchema), asyncHandler(authController.refreshToken));
 
 /**
  * @swagger
@@ -302,5 +298,92 @@ router.post('/verify-email', asyncHandler(authController.verifyEmail));
  *         description: User not found
  */
 router.post('/resend-verification', asyncHandler(authController.resendVerificationEmail));
+
+/**
+ * @swagger
+ * /api/v1/auth/google:
+ *   get:
+ *     summary: Get Google OAuth URL
+ *     description: Returns Google OAuth URL for frontend to redirect
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Google OAuth URL returned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     url:
+ *                       type: string
+ *                       example: https://accounts.google.com/o/oauth2/auth?client_id=...
+ */
+router.get('/google', (_req, res) => {
+  const googleAuthUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(envConfig.googleClientId)}` +
+    `&redirect_uri=${encodeURIComponent(envConfig.googleCallbackUrl)}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent('openid profile email')}` +
+    `&access_type=offline` +
+    `&prompt=consent`;
+
+  res.status(200).json({
+    success: true,
+    data: {
+      url: googleAuthUrl,
+    },
+  });
+});
+
+/**
+ * @swagger
+ * /api/v1/auth/google/callback:
+ *   get:
+ *     summary: Google OAuth callback
+ *     description: Handles callback from Google after user login
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirect to frontend with JWT token
+ *       400:
+ *         description: Authentication failed
+ */
+router.get(
+  '/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: `${envConfig.clientUrl}/login?error=auth_failed`,
+    session: false,
+  }),
+  async (req, res) => {
+    try {
+      const user = req.user as IUser;
+
+      // Generate JWT tokens
+      const { accessToken, refreshToken } = generateTokens({
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role,
+      });
+
+      // Save refresh token to user
+      user.refreshToken = refreshToken;
+      await user.save();
+
+      // Redirect to frontend with token
+      const redirectUrl = `${envConfig.clientUrl}/auth/google/callback?token=${accessToken}&refreshToken=${refreshToken}`;
+      res.redirect(redirectUrl);
+    } catch (error) {
+      console.error('Error in Google callback:', error);
+      res.redirect(`${envConfig.clientUrl}/login?error=auth_failed`);
+    }
+  }
+);
 
 export default router;

@@ -77,6 +77,11 @@ const envSchema = z.object({
 
   // Security
   BCRYPT_ROUNDS: z.string().default('10'),
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CALLBACK_URL: z.string().url().optional(),
 });
 
 const parseEnv = () => {
@@ -191,6 +196,11 @@ export const envConfig = {
 
   // Security
   bcryptRounds: parseInt(env.BCRYPT_ROUNDS, 10),
+
+  // Google OAuth
+  googleClientId: env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: env.GOOGLE_CLIENT_SECRET || '',
+  googleCallbackUrl: env.GOOGLE_CALLBACK_URL || '',
 } as const;
 
 export default envConfig;

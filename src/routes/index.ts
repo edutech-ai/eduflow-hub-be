@@ -38,6 +38,7 @@ router.get('/health', (_req, res) => {
 import authRoutes from './auth.routes.js';
 import profileRoutes from './profile.routes.js';
 import userRoutes from './user.routes.js';
+import notificationRoutes from './notification.routes.js';
 // import lessonRoutes from './lesson.routes.js';
 // import classroomRoutes from './classroom.routes.js';
 // import quizRoutes from './quiz.routes.js';
@@ -46,6 +47,7 @@ import userRoutes from './user.routes.js';
 router.use('/auth', authRoutes);
 router.use('/profile', profileRoutes);
 router.use('/users', userRoutes);
+router.use('/notifications', notificationRoutes);
 // router.use('/lessons', lessonRoutes); // TODO
 // router.use('/classrooms', classroomRoutes); // TODO
 // router.use('/quizzes', quizRoutes); // TODO

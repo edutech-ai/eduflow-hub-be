@@ -5,6 +5,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
+import passport from './configs/passport.config.js';
 import { envConfig } from './configs/env.config.js';
 import { swaggerSpec } from './configs/swagger.config.js';
 import logger from './configs/logger.config.js';
@@ -35,6 +36,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parser
 app.use(cookieParser());
+
+// Passport initialization
+app.use(passport.initialize());
 
 // Logging middleware
 if (envConfig.isDevelopment) {

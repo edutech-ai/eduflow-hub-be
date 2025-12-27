@@ -23,15 +23,11 @@ export const authorize = (allowedRoles: UserRole[]) => {
     try {
       // Check if user is authenticated
       if (!req.user) {
-        throw new ApiError(
-          HTTP_STATUS.UNAUTHORIZED,
-          'Authentication required',
-          'NOT_AUTHENTICATED'
-        );
+        throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Authentication required', 'NOT_AUTHENTICATED');
       }
 
       // Check if user has one of the allowed roles
-      const userRole = req.user.role as UserRole;
+      const userRole = (req.user as any).role as UserRole;
 
       if (!allowedRoles.includes(userRole)) {
         throw new ApiError(
@@ -68,26 +64,18 @@ export const isOwnerOrAdmin = (paramName: string = 'id') => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
-        throw new ApiError(
-          HTTP_STATUS.UNAUTHORIZED,
-          'Authentication required',
-          'NOT_AUTHENTICATED'
-        );
+        throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Authentication required', 'NOT_AUTHENTICATED');
       }
 
       const resourceId = req.params[paramName];
-      const userId = req.user.userId;
-      const userRole = req.user.role as UserRole;
+      const userId = (req.user as any).userId || (req.user as any)._id?.toString();
+      const userRole = (req.user as any).role as UserRole;
 
       // Allow if user is admin OR accessing their own resource
       if (userRole === UserRole.ADMIN || resourceId === userId) {
         next();
       } else {
-        throw new ApiError(
-          HTTP_STATUS.FORBIDDEN,
-          'You can only access your own resources',
-          'INSUFFICIENT_PERMISSIONS'
-        );
+        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'You can only access your own resources', 'INSUFFICIENT_PERMISSIONS');
       }
     } catch (error) {
       next(error);

@@ -81,16 +81,64 @@ const options: swaggerJsdoc.Options = {
             },
             role: {
               type: 'string',
-              enum: ['student', 'teacher', 'admin'],
-              example: 'student',
+              enum: ['STUDENT', 'TEACHER', 'ADMIN'],
+              example: 'STUDENT',
             },
             status: {
               type: 'string',
-              enum: ['active', 'inactive', 'suspended'],
-              example: 'active',
+              enum: ['ACTIVE', 'INACTIVE', 'PENDING', 'SUSPENDED'],
+              example: 'ACTIVE',
             },
             avatar: {
               type: 'string',
+              nullable: true,
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Notification: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            user: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439012',
+            },
+            type: {
+              type: 'string',
+              enum: ['ACCOUNT_CREATED', 'EMAIL_VERIFIED', 'PASSWORD_CHANGED'],
+              example: 'ACCOUNT_CREATED',
+            },
+            title: {
+              type: 'string',
+              example: 'Welcome to EduFlow Hub!',
+            },
+            message: {
+              type: 'string',
+              example: 'Your account has been created successfully.',
+            },
+            data: {
+              type: 'object',
+              nullable: true,
+            },
+            status: {
+              type: 'string',
+              enum: ['UNREAD', 'READ'],
+              example: 'UNREAD',
+            },
+            readAt: {
+              type: 'string',
+              format: 'date-time',
               nullable: true,
             },
             createdAt: {
@@ -122,6 +170,10 @@ const options: swaggerJsdoc.Options = {
       {
         name: 'Users',
         description: 'User management endpoints (Admin only)',
+      },
+      {
+        name: 'Notifications',
+        description: 'User notification management endpoints',
       },
       {
         name: 'Lessons',
