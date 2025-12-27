@@ -7,6 +7,7 @@ import { UserRole, UserStatus } from '../enums/user.enum.js';
 import { generateVerificationCode, hashToken } from '../utils/crypto.util.js';
 import { sendVerificationEmail } from '../utils/email.util.js';
 import { logger } from '../configs/logger.config.js';
+import { notificationService } from './notification.service.js';
 
 export class AuthService {
   /**
@@ -36,11 +37,7 @@ export class AuthService {
     const { code, hashedCode, codeExpiry } = generateVerificationCode();
 
     // Save hashed code to user
-    await userRepository.updateVerificationToken(
-      user._id.toString(),
-      hashedCode,
-      codeExpiry
-    );
+    await userRepository.updateVerificationToken(user._id.toString(), hashedCode, codeExpiry);
 
     // Send verification email
     try {
@@ -51,10 +48,7 @@ export class AuthService {
         email: user.email,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      throw new ApiError(
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        'Failed to send verification email'
-      );
+      throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to send verification email');
     }
 
     // Generate tokens
@@ -71,6 +65,9 @@ export class AuthService {
 
     // Save refresh token
     await userRepository.updateRefreshToken(user._id.toString(), refreshToken);
+
+    // Send notification
+    await notificationService.notifyAccountCreated(user._id.toString(), user.name);
 
     return {
       user,
@@ -186,10 +183,7 @@ export class AuthService {
   /**
    * Update current user profile
    */
-  async updateProfile(
-    userId: string,
-    data: { name?: string; email?: string; avatar?: string }
-  ): Promise<IUser> {
+  async updateProfile(userId: string, data: { name?: string; email?: string; avatar?: string }): Promise<IUser> {
     const user = await userRepository.findById(userId);
     if (!user) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'User not found');
@@ -209,11 +203,7 @@ export class AuthService {
   /**
    * Change password
    */
-  async changePassword(
-    userId: string,
-    currentPassword: string,
-    newPassword: string
-  ): Promise<void> {
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
     // Find user with password
     const user = await userRepository.findByIdWithPassword(userId);
     if (!user) {
@@ -229,6 +219,9 @@ export class AuthService {
     // Update password (will be hashed by pre-save hook)
     user.password = newPassword;
     await user.save();
+
+    // Send notification
+    await notificationService.notifyPasswordChanged(userId, user.name);
   }
 
   /**
@@ -241,10 +234,7 @@ export class AuthService {
     // Find user with valid verification token
     const user = await userRepository.findByVerificationToken(hashedToken);
     if (!user) {
-      throw new ApiError(
-        HTTP_STATUS.BAD_REQUEST,
-        'Invalid or expired verification token'
-      );
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Invalid or expired verification token');
     }
 
     // Mark email as verified
@@ -254,6 +244,9 @@ export class AuthService {
       userId: user._id.toString(),
       email: user.email,
     });
+
+    // Send notification
+    await notificationService.notifyEmailVerified(user._id.toString(), user.name);
 
     return verifiedUser;
   }
@@ -275,11 +268,7 @@ export class AuthService {
     const { code, hashedCode, codeExpiry } = generateVerificationCode();
 
     // Save hashed code to user
-    await userRepository.updateVerificationToken(
-      user._id.toString(),
-      hashedCode,
-      codeExpiry
-    );
+    await userRepository.updateVerificationToken(user._id.toString(), hashedCode, codeExpiry);
 
     // Send verification email
     await sendVerificationEmail(user.email, user.name, code);
