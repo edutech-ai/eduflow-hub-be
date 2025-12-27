@@ -19,7 +19,10 @@ export class UserRepository extends BaseRepository<IUser> {
    * Returns raw Mongoose document with instance methods
    */
   async findByEmailWithPassword(email: string): Promise<IUser | null> {
-    const user = await this.model.findOne({ email }).select('+password +refreshToken').exec();
+    const user = await this.model
+      .findOne({ email })
+      .select('+password +refreshToken +verificationToken +verificationTokenExpiry')
+      .exec();
     return user;
   }
 

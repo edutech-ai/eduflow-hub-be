@@ -53,7 +53,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
  * Logout user
  */
 export const logout = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user!.userId; // Set by authenticate middleware
+  const userId = (req.user as any).userId; // Set by authenticate middleware
 
   await authService.logout(userId);
 
@@ -67,7 +67,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
  * Get current user profile
  */
 export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user!.userId; // Set by authenticate middleware
+  const userId = (req.user as any).userId; // Set by authenticate middleware
 
   const user = await authService.getCurrentUser(userId);
 
@@ -82,7 +82,7 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
  * Update current user profile
  */
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user!.userId;
+  const userId = (req.user as any).userId;
   const { name, email, avatar } = req.body;
 
   const user = await authService.updateProfile(userId, { name, email, avatar });
@@ -98,7 +98,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
  * Change password
  */
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user!.userId;
+  const userId = (req.user as any).userId;
   const { currentPassword, newPassword } = req.body;
 
   await authService.changePassword(userId, currentPassword, newPassword);
